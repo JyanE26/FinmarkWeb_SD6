@@ -23,7 +23,12 @@
                 </div>
                 <div class="input-group">
                     <label for="password" class="input-label">Password</label>
-                    <input type="password" name="password" placeholder="Enter your password" required id="password">
+                    <div style="position:relative;">
+                        <input type="password" name="password" placeholder="Enter your password" required id="password" style="padding-right:38px;">
+                        <span id="togglePassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#888;font-size:1.1em;">
+                            <i class="fa fa-eye"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="options">
                     <label><input type="checkbox" name="remember"> Remember for 30 days</label>
@@ -88,6 +93,20 @@
         document.getElementById('loginBtn').disabled = true;
         document.getElementById('loginBtnText').style.display = 'none';
         document.getElementById('spinner').style.display = 'inline-block';
+    });
+    // Password show/hide toggle
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const pwd = document.getElementById('password');
+        const icon = this.querySelector('i');
+        if (pwd.type === 'password') {
+            pwd.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            pwd.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     });
     </script>
 </body>
