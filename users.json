@@ -1,0 +1,18 @@
+[
+  {
+    "username": "adminuser",
+    "password": "password",
+    "fullName": "Jyan Name",
+    "email": "admin123@example.com",
+    "role": "Admin",
+    "lastLogin": "6/27/2025, 3:58:26 PM"
+  },
+  {
+    "username": "user1",
+    "password": "userpass",
+    "fullName": "Test User",
+    "email": "user1@example.com",
+    "role": "User",
+    "lastLogin": "6/27/2025, 2:53:55 PM"
+  }
+]
