@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finmark Dashboard</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-root">
+        <aside class="dashboard-sidebar">
+            <div class="sidebar-logo"><i class="fa fa-cube"></i> FinMark</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-btn active"><i class="fa fa-home"></i> Dashboard</button>
+                <button class="sidebar-btn" onclick="showSection('uploads')"><i class="fa fa-upload"></i> Uploads</button>
+                <button class="sidebar-btn" onclick="showSection('reports')"><i class="fa fa-chart-bar"></i> Reports</button>
+                <button class="sidebar-btn" onclick="showSection('logs')"><i class="fa fa-list"></i> Logs</button>
+                <button class="sidebar-btn" onclick="showSection('settings')"><i class="fa fa-cog"></i> Settings</button>
+            </nav>
+        </aside>
+        <div class="dashboard-main-layout">
+            <nav class="dashboard-navbar">
+                <input class="navbar-search" placeholder="Search..." />
+                <div class="navbar-right">
+                    <span id="navbarWelcome">Welcome, <span id="navbarUser">User</span>!</span>
+                    <span id="navbarDate"></span>
+                    <span class="navbar-avatar" id="navbarAvatar"></span>
+                    <a href="/logout" class="logout-btn"><i class="fa fa-sign-out-alt"></i></a>
+                </div>
+            </nav>
+            <main class="dashboard-content-area">
+                <div class="dashboard-stats-row">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Reports</div>
+                        <div class="stat-value" id="statReports">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Total Uploads</div>
+                        <div class="stat-value" id="statUploads">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Total Logs</div>
+                        <div class="stat-value" id="statLogs">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Market Share</div>
+                        <div class="stat-value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Weather</div>
+                        <div class="stat-value">31°C</div>
+                        <div style="color:#3fd18c;font-size:0.95rem;">Sunny</div>
+                    </div>
+                </div>
+                <section class="dashboard-panels">
+                    <div class="panel panel-activity">
+                        <h3><i class="fa fa-history"></i> Recent Activity</h3>
+                        <div id="logsTableWrap"></div>
+                    </div>
+                    <div class="panel panel-uploads">
+                        <h3><i class="fa fa-upload"></i> Uploads</h3>
+                        <div id="uploadsTableWrap"></div>
+                    </div>
+                    <div class="panel panel-reports">
+                        <h3><i class="fa fa-chart-bar"></i> Reports</h3>
+                        <div id="reportsTableWrap"></div>
+                    </div>
+                    <div class="panel panel-notifications">
+                        <h3><i class="fa fa-bell"></i> Notifications</h3>
+                        <ul id="notificationList">
+                            <li>No new notifications.</li>
+                        </ul>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch user info
+        fetch('/api/user')
+            .then(res => {
+                if (!res.ok) {
+                    // Only redirect if unauthorized (401 or 403), not on all errors
+                    if (res.status === 401 || res.status === 403) window.location = '/';
+                    return Promise.reject('Unauthorized');
+                }
+                return res.json();
+            })
+            .then(user => {
+                // Set initials or fallback to first two letters of username/email
+                let initials = '';
+                if (user.fullName && user.fullName.trim()) {
+                    initials = user.fullName.trim().split(' ').map(n => n[0]).join('').toUpperCase();
+                } else if (user.username) {
+                    initials = user.username.substring(0,2).toUpperCase();
+                } else if (user.email) {
+                    initials = user.email.substring(0,2).toUpperCase();
+                } else {
+                    initials = 'U';
+                }
+                document.getElementById('navbarUser').textContent = user.fullName ? user.fullName.split(' ')[0] : user.username || 'User';
+                document.getElementById('navbarAvatar').textContent = initials;
+            })
+            .catch(err => {
+                // Only redirect if unauthorized
+                if (err === 'Unauthorized') window.location = '/';
+            });
+        // Set current date and time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('navbarDate').textContent = now.toLocaleString();
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        // Fetch stats
+        fetch('/api/reports').then(res=>res.json()).then(data=>{document.getElementById('statReports').textContent=data.total;});
+        fetch('/api/uploads').then(res=>res.json()).then(data=>{document.getElementById('statUploads').textContent=data.total;});
+        fetch('/api/logs').then(res=>res.json()).then(data=>{document.getElementById('statLogs').textContent=data.total;});
+        // Fetch recent activity
+        fetch('/api/logs?page=1&limit=5').then(res=>res.json()).then(data=>{
+            document.getElementById('activityList').innerHTML = data.results.map(l => `<li><i class='fa fa-${l.action==='Login'?'sign-in-alt':'upload'}'></i> ${l.user} - ${l.action} (${l.date})</li>`).join('') || '<li>No recent activity.</li>';
+        });
+        // Dummy notifications
+        document.getElementById('notificationList').innerHTML = '<li>System update scheduled for July 1st.</li><li>New report template available.</li>';
+        // Sidebar navigation (for demo)
+        window.showSection = function(section) {
+            alert(section.charAt(0).toUpperCase() + section.slice(1) + ' section coming soon!');
+        }
+        // --- Export, Demo Data, and Table Logic ---
+        function exportCSV(data, headers, filename) {
+            const csv = [headers, ...data.map(row => headers.map(h => `"${row[h]||''}"`))].map(r=>r.join(',')).join('\n');
+            const blob = new Blob([csv], {type:'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        document.getElementById('exportReportsBtn').onclick = function() {
+            fetch('/api/reports?limit=1000').then(res=>res.json()).then(data=>{
+                exportCSV(data.results, ['id','title','type','user','date'], 'reports.csv');
+            });
+        };
+        document.getElementById('exportUploadsBtn').onclick = function() {
+            fetch('/api/uploads?limit=1000').then(res=>res.json()).then(data=>{
+                exportCSV(data.results, ['id','filename','type','user','date'], 'uploads.csv');
+            });
+        };
+        document.getElementById('exportLogsBtn').onclick = function() {
+            fetch('/api/logs?limit=1000').then(res=>res.json()).then(data=>{
+                exportCSV(data.results, ['id','action','user','date'], 'logs.csv');
+            });
+        };
+        document.getElementById('generateDemoBtn').onclick = function() {
+            fetch('/api/demo/generate', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({count:50})})
+                .then(()=>window.location.reload());
+        };
+        document.getElementById('clearDemoBtn').onclick = function() {
+            fetch('/api/demo/clear', {method:'POST'}).then(()=>window.location.reload());
+        };
+        // --- Collapsible Panels and Pagination ---
+        window.togglePanel = function(panelId) {
+            const panel = document.getElementById(panelId);
+            const content = panel.querySelector('.collapsible-content');
+            const arrow = panel.querySelector('.collapse-arrow');
+            const isOpen = content.style.display !== 'none';
+            // Collapse all panels
+            document.querySelectorAll('.panel-collapsible .collapsible-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.panel-collapsible .collapse-arrow').forEach(el => el.textContent = '►');
+            // Open this one if it was closed
+            if (!isOpen) {
+                content.style.display = '';
+                arrow.textContent = '▼';
+            }
+        };
+        // Pagination logic for tables
+        function renderPaginatedTable(containerId, api, headers, labels, pageSize) {
+            let page = 1;
+            function renderPage() {
+                fetch(api+`?limit=${pageSize}&page=${page}`)
+                    .then(res=>res.json()).then(data=>{
+                    const wrap = document.getElementById(containerId);
+                    if (!data.results.length) { wrap.innerHTML = '<div style="color:#b0b3c7;">No data.</div>'; return; }
+                    let html = '<table class="user-table" style="margin-top:1rem;"><thead><tr>';
+                    labels.forEach(l=>{html+=`<th>${l}</th>`;});
+                    html+='</tr></thead><tbody>';
+                    data.results.forEach(row=>{
+                        html+='<tr>';
+                        headers.forEach(h=>{html+=`<td>${row[h]||''}</td>`;});
+                        html+='</tr>';
+                    });
+                    html+='</tbody></table>';
+                    // Pagination controls
+                    html += `<div style='display:flex;justify-content:flex-end;gap:1rem;margin-top:0.5rem;'>`;
+                    html += `<button ${page===1?'disabled':''} onclick='window._pageNav_${containerId}(-1)'>Prev</button>`;
+                    html += `<span>Page ${page} of ${Math.ceil(data.total/pageSize)}</span>`;
+                    html += `<button ${page*pageSize>=data.total?'disabled':''} onclick='window._pageNav_${containerId}(1)'>Next</button>`;
+                    html += `</div>`;
+                    wrap.innerHTML = html;
+                    window[`_pageNav_${containerId}`] = function(delta) { page += delta; renderPage(); };
+                });
+            }
+            renderPage();
+        }
+        renderPaginatedTable('logsTableWrap','/api/logs',['id','action','user','date'],['ID','Action','User','Date'],10);
+        renderPaginatedTable('uploadsTableWrap','/api/uploads',['id','filename','type','user','date'],['ID','Filename','Type','User','Date'],10);
+        renderPaginatedTable('reportsTableWrap','/api/reports',['id','title','type','user','date'],['ID','Title','Type','User','Date'],10);
+        // Open logs panel by default
+        togglePanel('logsPanel');
+    });
+    </script>
+</body>
+</html>
