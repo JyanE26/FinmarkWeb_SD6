@@ -1,0 +1,26 @@
+[
+  {
+    "username": "user",
+    "password": "$2b$10$2N6ELxzRw3UoatBh01O9Oe1dFAx8stUjmBV7K7hbivR0dsKXlUjoK",
+    "fullName": "John Doe",
+    "email": "user@example.com",
+    "role": "User",
+    "lastLogin": null
+  },
+  {
+    "username": "admin",
+    "password": "$2b$10$bO7VayVHnwFlSDbdssnGS.98Aak3ClArBrkEXjdQjo3RpSug2fKgG",
+    "fullName": "Jane Admin",
+    "email": "admin@example.com",
+    "role": "Admin",
+    "lastLogin": null
+  },
+  {
+    "username": "John",
+    "password": "$2b$10$M0AOd9mWWW8dHjkQKf0YsesXI3Dzk41ttUBbT1HBuYYOrjnSaF.Qq",
+    "fullName": "John",
+    "email": "john@gmail.com",
+    "role": "User",
+    "lastLogin": "7/7/2025, 8:36:12 PM"
+  }
+]
