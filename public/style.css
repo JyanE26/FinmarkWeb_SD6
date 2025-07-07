@@ -1040,3 +1040,83 @@ button[disabled] {
         max-width: 100%;
     }
 }
+
+.logs-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.log-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #2a2d41;
+    border-radius: 6px;
+    height: 36px;
+    min-width: 200px;
+    border: 1px solid #4a4e69;
+    padding: 0 12px;
+}
+
+.log-search i {
+    position: absolute;
+    left: 12px;
+    color: #8a8fb3;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+#logSearch {
+    background: transparent;
+    border: none;
+    color: #fff;
+    padding-left: 25px;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    font-size: 14px;
+}
+
+#logSearch::placeholder {
+    color: #6c7293;
+}
+
+.log-search:focus-within {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #4a4e69;
+    color: #fff;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #6c5ce7;
+}
+
+.btn-primary {
+    background: #6c5ce7;
+    border: 1px solid #6c5ce7;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #5a50c9;
+    border-color: #5a50c9;
+}
